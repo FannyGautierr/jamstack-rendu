@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import FilterPopOver from "~/components/FilterPopOver.vue";
-import {onMounted} from "vue";
+import {onMounted, computed, watch} from "vue";
 import fuse from "fuse.js";
 
 
 const { find, findOne, create, update, delete: remove } = useStrapi();
 const client = useStrapiClient();
+const search = useSearchStore()
 
 const state = reactive({
   recipes: [],
@@ -17,7 +18,6 @@ const state = reactive({
     content: '',
     tags: '',
     slug: '',
-
   },
   file: '',
   blob: '',
@@ -66,15 +66,18 @@ async function createRecipe(){
   
   state.modalIsOpen = false
 }
-const recipes = await find('recipes',{populate:'*'})
-const recipe = computed(() => {
-  if(state.filters.length === 0) return recipes;
-  return recipes.filter((service: any) => {
-    return state.filters.includes(service.tag);
+
+
+const services = computed(() => {
+  if (state.filters.length === 0) return state.recipes;
+  return state.recipes.filter(service => {
+    return service.tags.some(tag => {
+      console.log(tag);
+      const isIncluded = state.filters.includes(tag.tag);
+      return isIncluded;
+    });
   });
-})
-
-
+});
 
 onMounted(() => {
   loadData()
@@ -82,6 +85,7 @@ onMounted(() => {
 </script>
 
 <template>
+
   <div class="bg-neutral-50 h-screen" >
     <div class="flex flex-col items-center gap-y-4">
       <div class="flex flex-col gap-4">
@@ -91,35 +95,42 @@ onMounted(() => {
         <NuxtLink to="/exemple-recherche">
           Exemple de recherche
         </NuxtLink> -->
-        <!-- <FilterPopOver  
-          v-model="state.filters"
-        />
-         -->
+    
+        
          <!-- Serch bar -->
-         <div>
+         <!-- <div class="form-group flex flex-col gap-2" role="search">
+          <label for="search">Chercher une recette :</label>
           <input
-          type="text"
-          v-model="state.search"
-          />
-          <button @click="loadData">Search</button>
-        </div>
+            id="search" v-model="search.query"
+            class="px-4 py-2 border-2 rounded-lg border-gray-500 drop-shadow-none"
+            type="search"
+          >
+        </div> -->
+
 
 
         <template v-if="!state.loading">
 
-          <h1 class="text-2xl font-bold text-center">All recipes</h1>
-          <button @click="state.modalIsOpen = !state.modalIsOpen" class="btn-primary w-fit border-none m-auto">New recipe +</button>
-
-
+          <div class="flex flex-row items-center gap-4">
+          <h1 class="text-2xl font-bold">All recipes</h1>
+          <FilterPopOver  
+            v-model="state.filters"
+            class="h-8 border-none"
+          />
+      </div>
+          <button @click="state.modalIsOpen = !state.modalIsOpen" class="btn-primary w-fit !border-none m-auto outline-none decoration-none">New recipe +</button>
           <div class="grid grid-cols-3 gap-4">
          
-              <div v-for="recipe in state.recipes" class=" p-4 flex flex-col border border-zinc-200 bg-white rounded-lg">
+              <div v-for="recipe in services" class=" p-4 flex flex-col border border-zinc-200 bg-white rounded-lg">
                 <NuxtLink :to="`/recipes/${recipe.slug}`" class="no-underline text-base font-normal text-black">
+                  <div>
+                    <div v-if="recipe.images" v-for="recipeImage in recipe.images " >
+                      <img :alt="recipeImage.name" :src="recipeImage.url" class="h-20 w-20"/>
+                    </div>
+                  </div>
                 <p class="text-2xl text-bold">{{ recipe.title }}</p>
 
-                <div v-if="recipe.images" v-for="recipeImage in recipe.images " >
-                  <img :alt="recipeImage.name" :src="recipeImage.url" class="h-20 w-20"/>
-                </div>
+             
 
                 <p class="text-xl">{{ recipe.content }}</p>
                 <div v-for="tag in recipe.tags">
@@ -144,15 +155,15 @@ onMounted(() => {
       </div>
         <div class="flex flex-col m-auto gap-5">
           <div class="flex flex-col items-start gap-1">
-          <label for="title">Title</label>
-          <input v-model="state.recipe.title" placeholder="title"  class="w-full"/>
+          <label for="title" class="font-normal text-sm text-zinc-800">Title</label>
+          <FormKit v-model="state.recipe.title" placeholder="title"  class="w-full" type="text"/>
         </div>
         <div class="flex flex-col items-start gap-1">
-          <label for="title">Content</label>
-          <input v-model="state.recipe.content" placeholder="content"  class="w-full"/>
+          <label for="title" class="font-normal text-sm text-zinc-800">Content</label>
+          <FormKit v-model="state.recipe.content" placeholder="content"  class="w-full" type="text"/>
         </div>
         <div class="flex flex-col items-start gap-1">
-          <label for="title">Tag</label>
+          <label for="title" class="font-normal text-sm text-zinc-800">Tag</label>
           <select v-model="state.recipe.tags"  class="w-full">
             <option disabled value="">Choisissez</option>
             <option v-for="tag in state.tags" :key="tag.id" :value="tag.id">{{tag.tag}}</option>

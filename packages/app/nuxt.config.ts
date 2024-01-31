@@ -7,7 +7,7 @@ export default defineNuxtConfig({
     '/recettes/**': { isr: true },
   },
   css: ['@unocss/reset/normalize.css', '~/assets/css/main.css'],
-  modules: ['@unocss/nuxt', '@nuxt/image', '@nuxtjs/strapi', '@pinia/nuxt'],
+  modules: ['@unocss/nuxt', '@nuxt/image', '@nuxtjs/strapi', '@pinia/nuxt','@formkit/nuxt','nuxt-icon'],
   strapi: {
     url: process.env.STRAPI_URL || 'http://localhost:1337',
     prefix: '/api',
@@ -19,4 +19,7 @@ export default defineNuxtConfig({
       baseURL: '',
     },
   },
+  formkit: {
+    autoImport: true
+  }
 })

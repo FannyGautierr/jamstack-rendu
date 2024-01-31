@@ -16,6 +16,7 @@
     "@unocss/nuxt": "^0.58.3",
     "@unocss/transformer-directives": "^0.58.4",
     "nuxt": "^3.9.3",
+    "nuxt-icon": "^0.6.8",
     "qs": "^6.11.2",
     "vue": "^3.4.14",
     "vue-router": "^4.2.5"

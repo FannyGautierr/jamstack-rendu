@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/vue";
+const { find, findOne, create, update, delete: remove } = useStrapi();
 
 
 const props = defineProps({
@@ -19,20 +20,24 @@ const isStatusFiltered  = computed(() => {
     return data.status.includes(status);
   };
 });
+const tags = await find('tags')
 
-const statuses = [
-  { value: "request_sent", label: "Request sent" },
-  { value: "confirmed", label: "Confirmed" },
-  { value: "pickup_confirmed", label: "Pickup Confirmed" },
-  { value: "has_incident", label: "Has Incident" },
-  { value: "no_incident", label: "No Incident" },
-  { value: "wr_weighting", label: "WR Weighting" },
-  { value: "is_weighted", label: "Is Weighted" },
-  { value: "wr_cancel", label: "WR Cancel" },
-  { value: "wp_cancel", label: "WP Cancel"},
-  { value: "pickup_fail_wr_fault", label: "Pickup fail Wr fault"},
-  { value: "pickup_fail_wp_fault", label: "Pickup fail Wp fault"}
-];
+const statuses = computed(()=>{
+  return tags.data.map((item)=>{
+    return {
+      value: item.tag,
+      label: `#${item.tag}`
+    }
+  })
+
+})
+console.log(statuses.value)
+
+// const statuses = [
+//   { value: "request_sent", label: "Request sent" },
+//   { value: "confirmed", label: "Confirmed" },
+//   { value: "pickup_confirmed", label: "Pickup Confirmed" },
+// ];
 
 const emit = defineEmits<{
   "update:model-value": [value: string];
@@ -61,21 +66,18 @@ onMounted(() => {
 <template>
   <Popover v-slot="{ open }" class="relative flex-shrink-0">
     <PopoverButton
-      class="btn-secondary gap-1.5 px-2 py-1 h-full text-sm"
+      class="btn-secondary gap-1.5 px-2 py-1 h-full text-sm outline-none"
       :class="open ? '!border-[#373FEF]' : '!hover:text-secondary'"
     >
-      <div
-        i="ph-funnel-duotone"
-        class="text-[#40403F]"
-      />
-      <div class="flex items-center gap-1 text-[#262626]">
+    <Icon name="mdi:funnel" color="black" />
+     
         <p class="font-semibold">
-          {{ `Filters : ${data.status.length} :` }}
+          {{ `Filters : ` }}
         </p>
         <p>
           {{ data.status.length === 0 ? 'All' : data.status.length  }}
         </p>
-      </div>
+
     </PopoverButton>
   
     <transition
@@ -91,14 +93,14 @@ onMounted(() => {
           class="w-50 flex-auto overflow-hidden rounded bg-white text-sm leading-2 ring-1 ring-gray-900/5 px-3 py-1"
           style="box-shadow: 0 2px 6px 2px rgba(60, 64, 67, 0.15)"
         >
-          <div class="flex flex-col py-2">
+          <div class="flex flex-col py-2 gap-2">
             <template v-for="status in statuses" :key="status.value">
               
-              <input
+              <FormKit
                 :value="isStatusFiltered(status.value)"
-                :label='`collect.status_${status.value}`'
+                :label='`${status.value}`'
+                wrapper-class='flex gap-3 items-center'
                 type="checkbox"
-                decorator-icon="ph-check-bold"
                 @click="addStatusToFilteredStatuses(status.value)"
               />
           </template>

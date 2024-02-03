@@ -1,5 +1,5 @@
 <script setup lang="ts">
-
+import { generateTagStyleFromString } from '~/controllers/colors'
 /**
  * @tag : String
  * (The tag content to display, can be overriden by the slot content)
@@ -24,14 +24,13 @@ const props = defineProps({
 <template>
 
   <div
-    :class="[props.tagClasses?.tag]"
-    class="flex items-center gap-1 w-fit px-1.5 py-0.5 text-sm truncate rounded"
-  >
-  {{ props.tag }}
-    <slot>
-      <p :class="props.tagClasses?.label">
-        {{ props.tag }}
-      </p>
-    </slot>
-  </div>
+  :class="[generateTagStyleFromString(props.tag), props.tagClasses?.tag]"
+  class="flex items-center gap-1 w-fit px-1.5 py-0.5 text-sm truncate rounded h-6"
+>
+  <slot>
+    <p :class="props.tagClasses?.label" >
+      {{ props.tag }}
+    </p>
+  </slot>
+</div>
 </template>

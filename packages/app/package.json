@@ -17,6 +17,7 @@
     "@unocss/transformer-directives": "^0.58.4",
     "nuxt": "^3.9.3",
     "nuxt-icon": "^0.6.8",
+    "prettier": "3.2.4",
     "qs": "^6.11.2",
     "vue": "^3.4.14",
     "vue-router": "^4.2.5"
@@ -31,6 +32,7 @@
     "eslint": "^8.56.0",
     "eslint-plugin-format": "^0.1.0",
     "fuse.js": "^7.0.0",
-    "markdown-it": "^14.0.0"
+    "markdown-it": "^14.0.0",
+    "marked": "^11.2.0"
   }
 }

@@ -15,9 +15,6 @@
     "title": {
       "type": "string"
     },
-    "content": {
-      "type": "text"
-    },
     "slug": {
       "type": "uid",
       "targetField": "title",
@@ -29,12 +26,16 @@
       "target": "api::tag.tag"
     },
     "images": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
       "allowedTypes": [
         "images",
         "videos"
-      ],
-      "type": "media",
-      "multiple": true
+      ]
+    },
+    "content": {
+      "type": "richtext"
     }
   }
 }

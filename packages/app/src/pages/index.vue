@@ -1,17 +1,21 @@
 <script lang="ts" setup>
 import FilterPopOver from "~/components/FilterPopOver.vue";
 import {onMounted, computed, watch} from "vue";
-import fuse from "fuse.js";
+import { useMarkdown } from '@/composables/useMarkdown'; 
+import Fuse from "fuse.js";
+
 
 
 const { find, findOne, create, update, delete: remove } = useStrapi();
 const client = useStrapiClient();
-const search = useSearchStore()
+const { parse } = useMarkdown();
+
 
 const state = reactive({
   recipes: [],
   tags: [],
   filters:[],
+  searchResults: [],
   search:'',
   recipe: {
     title: '',
@@ -25,6 +29,8 @@ const state = reactive({
   error: null,
   modalIsOpen: false
 })
+
+let fuse; 
 
 async function loadData(){
   state.loading = true
@@ -79,6 +85,21 @@ const services = computed(() => {
   });
 });
 
+watch(() => services.value, (newRecipes) => {
+  fuse = new Fuse(newRecipes, {
+    keys: ['title'],
+    includeScore: false,
+  });
+}, {
+  immediate: true,
+});
+
+const filteredRecipes = computed(() => {
+  if (!state.search.trim()) return services.value;
+
+  return fuse.search(state.search).map(result => result.item);
+});
+
 onMounted(() => {
   loadData()
 })
@@ -86,61 +107,49 @@ onMounted(() => {
 
 <template>
 
-  <div class="bg-neutral-50 h-screen" >
-    <div class="flex flex-col items-center gap-y-4">
-      <div class="flex flex-col gap-4">
-        <!-- <NuxtLink to="/start">
-          Documentation
-        </NuxtLink>
-        <NuxtLink to="/exemple-recherche">
-          Exemple de recherche
-        </NuxtLink> -->
-    
-        
-         <!-- Serch bar -->
-         <!-- <div class="form-group flex flex-col gap-2" role="search">
-          <label for="search">Chercher une recette :</label>
-          <input
-            id="search" v-model="search.query"
-            class="px-4 py-2 border-2 rounded-lg border-gray-500 drop-shadow-none"
-            type="search"
-          >
-        </div> -->
 
-
-
-        <template v-if="!state.loading">
-
-          <div class="flex flex-row items-center gap-4">
+    <div class="flex flex-col items-center gap-y-4 w-full">
+      <div class="flex flex-col gap-4 w-full items-start">      
+        <div class="flex flex-row items-center gap-4">
           <h1 class="text-2xl font-bold">All recipes</h1>
           <FilterPopOver  
             v-model="state.filters"
             class="h-8 border-none"
           />
-      </div>
-          <button @click="state.modalIsOpen = !state.modalIsOpen" class="btn-primary w-fit !border-none m-auto outline-none decoration-none">New recipe +</button>
-          <div class="grid grid-cols-3 gap-4">
-         
-              <div v-for="recipe in services" class=" p-4 flex flex-col border border-zinc-200 bg-white rounded-lg">
-                <NuxtLink :to="`/recipes/${recipe.slug}`" class="no-underline text-base font-normal text-black">
-                  <div>
-                    <div v-if="recipe.images" v-for="recipeImage in recipe.images " >
-                      <img :alt="recipeImage.name" :src="recipeImage.url" class="h-20 w-20"/>
+        </div>
+        <div class="flex flex-col gap-2 w-full" role="search">
+          <label for="search" class="text-zinc-800 italic  underline">Search for a recipe:</label>
+          <input
+            id="search"
+            v-model="state.search"
+            class="px-4 py-2 border-2 rounded border border-solid border-zinc-300 outline-none shadow-none w-full"
+            type="search"
+            placeholder="Enter search term..."
+          />
+        </div>
+        <button @click="state.modalIsOpen = !state.modalIsOpen" class="btn-primary w-fit !border-none m-auto outline-none decoration-none">New recipe +</button>
+        <template v-if="!state.loading">
+            <!-- <div class="grid grid-cols-3 gap-4 w-full"> -->
+              <transition-group name="recipe-transition" tag="div" class="grid grid-cols-3 gap-4 w-full">
+                <div v-for="recipe in filteredRecipes" class=" p-4 flex flex-col border border-zinc-200 bg-white rounded-lg gap-2">
+                  <NuxtLink :to="`/recipes/${recipe.slug}`" class="no-underline text-base font-normal flex flex-col gap-2 text-black">
+                    <div class="h-[50%] w-fit">
+                      <div v-if="recipe.images" v-for="recipeImage in recipe.images " >
+                        <img :alt="recipeImage.name" :src="recipeImage.url" class="h-50 w-100 object-cover rounded"/>
+                      </div>
                     </div>
-                  </div>
-                <p class="text-2xl text-bold">{{ recipe.title }}</p>
-
-             
-
-                <p class="text-xl">{{ recipe.content }}</p>
-                <div v-for="tag in recipe.tags">
-                  {{ tag.tag }}
-                  <!-- <Tag :tags="tag.tag" /> -->
+                    <p class="text-black text-3xl font-bold whitespace-nowrap">{{ recipe.title }}</p>
+              
+                  <!-- <div v-html="parse(recipe.content)" class="markdown-content"></div> -->
+                    <div class="flex items-center gap-2">
+                      <div v-for="tag in recipe.tags" >
+                        <Tag :tag="tag.tag" />
+                      </div>
+                    </div>
+                  </NuxtLink> 
                 </div>
-                </NuxtLink> 
-              </div>
-          
-          </div>
+              </transition-group>
+            <!-- </div> -->
         </template>
       </div>
     </div>
@@ -180,5 +189,16 @@ onMounted(() => {
     </div>
 
 
-  </div>
+
 </template>
+
+<style scoped>
+.recipe-transition-enter-active, .recipe-transition-leave-active {
+  transition: opacity 0.2s, transform 0.2s;
+}
+.recipe-transition-enter-from, .recipe-transition-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+</style>

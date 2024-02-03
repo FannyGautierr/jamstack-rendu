@@ -781,10 +781,10 @@ export interface ApiRecipeRecipe extends Schema.CollectionType {
   };
   attributes: {
     title: Attribute.String;
-    content: Attribute.Text;
     slug: Attribute.UID<'api::recipe.recipe', 'title'> & Attribute.Required;
     tags: Attribute.Relation<'api::recipe.recipe', 'oneToMany', 'api::tag.tag'>;
     images: Attribute.Media;
+    content: Attribute.RichText;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

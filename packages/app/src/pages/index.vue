@@ -4,18 +4,14 @@ import {onMounted, computed, watch} from "vue";
 import { useMarkdown } from '@/composables/useMarkdown'; 
 import Fuse from "fuse.js";
 
-
-
 const { find, findOne, create, update, delete: remove } = useStrapi();
 const client = useStrapiClient();
-const { parse } = useMarkdown();
-
 
 const state = reactive({
-  recipes: [],
-  tags: [],
-  filters:[],
-  searchResults: [],
+  recipes: [] as  any[],
+  tags: [] as any[],
+  filters:[] as any[],
+  searchResults: [] as any[],
   search:'',
   recipe: {
     title: '',
@@ -30,7 +26,7 @@ const state = reactive({
   modalIsOpen: false
 })
 
-let fuse; 
+let fuse: any; 
 
 async function loadData(){
   state.loading = true
@@ -61,11 +57,9 @@ async function createRecipe(){
       const { data } = await client(`/recipes`, {
       method: 'POST',
       body: formData
-    })
-    console.log(data)
-    // data.images.url = state.blob
+    }) as  any
+  
     state.recipes.push(data)
-
     }catch(e){
       console.error(e)
     }
@@ -77,9 +71,8 @@ async function createRecipe(){
 const services = computed(() => {
   if (state.filters.length === 0) return state.recipes;
   return state.recipes.filter(service => {
-    return service.tags.some(tag => {
-      console.log(tag);
-      const isIncluded = state.filters.includes(tag.tag);
+    return service.tags.some((tag: any) => {
+      const isIncluded: any = state.filters.includes(tag.tag);
       return isIncluded;
     });
   });
@@ -96,8 +89,7 @@ watch(() => services.value, (newRecipes) => {
 
 const filteredRecipes = computed(() => {
   if (!state.search.trim()) return services.value;
-
-  return fuse.search(state.search).map(result => result.item);
+  return fuse.search(state.search).map((result: any) => result.item);
 });
 
 onMounted(() => {
@@ -139,8 +131,6 @@ onMounted(() => {
                       </div>
                     </div>
                     <p class="text-black text-3xl font-bold whitespace-nowrap">{{ recipe.title }}</p>
-              
-                  <!-- <div v-html="parse(recipe.content)" class="markdown-content"></div> -->
                     <div class="flex items-center gap-2">
                       <div v-for="tag in recipe.tags" >
                         <Tag :tag="tag.tag" />
@@ -168,8 +158,8 @@ onMounted(() => {
           <FormKit v-model="state.recipe.title" placeholder="title"  class="w-full" type="text"/>
         </div>
         <div class="flex flex-col items-start gap-1">
-          <label for="title" class="font-normal text-sm text-zinc-800">Content</label>
-          <FormKit v-model="state.recipe.content" placeholder="content"  class="w-full" type="text"/>
+          <label for="title" class="font-normal text-sm text-zinc-800">Content (in *.md)</label>
+          <FormKit v-model="state.recipe.content" placeholder="content"  class="w-full" type="textarea" auto-height/>
         </div>
         <div class="flex flex-col items-start gap-1">
           <label for="title" class="font-normal text-sm text-zinc-800">Tag</label>
@@ -194,7 +184,7 @@ onMounted(() => {
 
 <style scoped>
 .recipe-transition-enter-active, .recipe-transition-leave-active {
-  transition: opacity 0.2s, transform 0.2s;
+  transition: opacity 0.5s, transform 0.5s;
 }
 .recipe-transition-enter-from, .recipe-transition-leave-to {
   opacity: 0;

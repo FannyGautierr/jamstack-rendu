@@ -10,14 +10,13 @@ const route = useRoute()
 
 
 const state = reactive({
-  recipes: {},
-  tags: [],
+  recipes: {} as any,
+  tags: [] as any[],
   recipe: {
     title: '',
     content: '',
     tags: '',
     slug: '',
-
   },
   file: '',
   blob: '',
@@ -29,35 +28,34 @@ const state = reactive({
 async function loadData(){
   state.loading = true
 
-  const slug = route.params.slug
-
-  const recipes = await findOne('recipes',slug,{populate:'*'})
+  const slug: any = route.params.slug
+  const recipes = await findOne('recipes', slug, {populate:'*'})
   const tags = await find('tags')
-  console.log(recipes)
-  console.log(state.recipes)
+
   state.recipes = recipes.data 
-console.log(state.recipes)
   state.tags = tags.data || []
+
   state.loading = false
 }
 
 onMounted(() => {
   loadData()
 })
+
 </script>
 <template>
   <NuxtLink to="/" class="flex items-center">
-  <Icon name="uil:arrow-left" color="black" class="h-8 w-8 hover:text-green-500" />
-  <p class=" decoration-none text-zinc-900 hover:text-green-500">Home page</p>
- </NuxtLink>
-  <div v-if="!state.loading && Object.keys(state.recipes).length !== 0 " class="bg-neutral-100 h-screen">
+    <Icon name="uil:arrow-left" color="black" class="h-8 w-8 hover:text-green-500" />
+    <p class=" decoration-none text-zinc-900 hover:text-green-500">Home page</p>
+  </NuxtLink>
+  <template v-if="!state.loading && Object.keys(state.recipes).length !== 0 " class="">
     <div class=" p-4 flex flex-col border border-zinc-200 bg-white rounded-lg m-20">
       <div class="h-100 relative">
-        <div v-for="recipeImage in state.recipes.images" :key="recipeImage.name" class="w-full h-auto">
-          <img :alt="recipeImage.url " :src="recipeImage.url" class="absolute object-cover w-full h-100 "/>
+        <div v-for="recipeImage in state.recipes.images" :key="recipeImage.name" class="w-full h-auto ">
+          <img :alt="recipeImage.url " :src="recipeImage.url" class="absolute object-cover w-full h-100  "/>
         </div>
-        <div class="absolute top-85 left-0 right-200 bottom-0 flex justify-center items-center">
-          <p class="text-black text-3xl font-bold whitespace-nowrap">{{ state.recipes.title }}</p>
+        <div class="absolute  flex justify-center items-center backdrop-blur-sm w-full h-full">
+          <p class="text-white text-3xl font-bold whitespace-nowrap">{{ state.recipes.title }}</p>
         </div>
         
       </div>
@@ -68,6 +66,8 @@ onMounted(() => {
       </div>
       <div v-html="parse(state.recipes.content)" class="markdown-content"></div>
     </div>
-</div>
-<div v-else  class="flex items-center justify-center h-full text-5xl font-bold text-gray-700 ">Loading...</div>
+  </template>
+  <div v-else  class="flex items-center justify-center h-full text-5xl font-bold text-gray-700 "> 
+    <Icon name="uil:spinner" color="black" class="animate-spin"/>
+  </div>
 </template>
